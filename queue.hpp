@@ -1,73 +1,75 @@
-/*
- * queue.h
- *
- *  Created on: Nov 11, 2025
- *      Author: Oleksiy
- */
+#ifndef NIKOLEX_QUEUEHPP_
+#define NIKOLEX_QUEUEHPP_
 
-#pragma once
+#include <stdint.h>
 
-#include "cstdint"
+namespace nikolex::queue::v1 {
 
+	template<typename T, uint8_t size>
+	class Queue {
 
-namespace nikolex {
+		T list[size];
 
-template<typename T, uint8_t size>
-class Queue {
+		uint8_t qty;
 
-	T itemList[size];
-	int8_t pointer;
-	uint8_t qty;
+		int8_t pointer;
 
-public:
-
-	Queue() : pointer(-1), qty(0){
-
-	}
-
-	bool isEmpty(){ return qty == 0;}
-	bool isFull(){return qty == size;}
-
-
-	void push(T* item){
-		if(isFull()) return;
-		pointer++;
-		qty++;
-		itemList[pointer] = *item;
-	}
-
-	T* getNext(){
-		if((pointer + 1) < size){
-			return &itemList[pointer + 1];
+	public:
+		Queue(): pointer(-1), qty(0){
+			for(uint8_t i = 0; i < size; i++){
+				list[i] = {};
+			}
 		}
-		return nullptr;
-	}
 
-	T* getFirst(){
-		if(isEmpty()) return nullptr;
-		return &itemList[0];
-	}
 
-	T* createNext(){
-		if((pointer + 1) < size){
-			pointer++;
+
+		T pushEnd(T item) {
 			qty++;
-			return &itemList[pointer];
-		}
-		return nullptr;
-	}
-
-	void deleteFirst(){
-		if(isEmpty()) return;
-
-		for(uint8_t i = 1; i <= qty; i++){
-			itemList[i-1] = itemList[i];
+			pointer = qty - 1;
+			list[pointer] = item;
+			return list[pointer];
 		}
 
-		qty--;
-		pointer--;
-	}
+		T pushNext(T item){
+			qty++;
+			pointer++;
 
-};
+			for(uint8_t i = qty - 1; i > pointer; i--){
+				list[i+1] = list[i];
+			}
+			list[pointer] = item;
+			return list[pointer];
+		}
 
-}  // namespace nikolex
+
+		T pushFront(T item){
+			qty++;
+			pointer = 0;
+			for(uint8_t i = qty - 1; i > 0; i--){
+				list[i] = list[i - 1];
+			}
+			list[pointer] = item;
+			return list[0];
+		}
+
+
+		T pop(){
+			qty--;
+			pointer = -1;
+			T firstItem = list[0];
+			for(uint8_t i = 0; i < qty; i++){
+				list[i] = list[i+1];
+			}
+
+			return firstItem;
+		}
+
+		T getFirstItem(){
+			pointer = 0;
+			return list[0];
+		}
+
+		uint8_t length(){return qty;}
+	};
+}
+#endif
