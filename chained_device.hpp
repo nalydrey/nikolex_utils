@@ -69,10 +69,13 @@ namespace nikolex::ChainedDevice::v1 {
 
 
 			currentChain ?
-					*queue.pushFront(p_chain) :
+					*queue.pushNext(p_chain) :
+//					*queue.pushFront(p_chain) :
 					*queue.pushEnd(p_chain);
 
-			if(currentChain) currentChain = nullptr;
+
+
+//			if(currentChain) currentChain = nullptr;
 
 
 
@@ -91,15 +94,31 @@ namespace nikolex::ChainedDevice::v1 {
 		}
 
 
+		 DeviceChain* findUnblockedChain(){
+			 for(uint8_t i = 0; i < queue.length(); i++){
+				 if(!queue.get(i)->blocked) return queue.get(i);
+			 }
+			 return nullptr;
+		}
 
-		virtual void loop() final {
-			if(queue.length() > 0 && currentChain == nullptr){
+		int8_t findChainIndex(DeviceChain* chain){
+			for(uint8_t i = 0; i < queue.length(); i++){
+				if(queue.get(i) == chain) return i;
+			}
+			return -1;
+		}
 
-				currentChain = queue.getFirstItem();
+		virtual void loop() {
+			if(queue.length() > 0){
+
+				currentChain = findUnblockedChain();
+				if(!currentChain) return;
 				currentChain->setCompletedCallback([](void* ctx){
 					Device* dev = (Device*)ctx;
 					if(!dev->currentChain) return;
-					dev->queue.pop();
+					int8_t index = dev->findChainIndex(dev->currentChain);
+					if(index < 0) return;
+					dev->queue.removeByIndex(index);
 					dev->chainAllocator.remove(dev->currentChain);
 					dev->currentChain = nullptr;
 				}, this);

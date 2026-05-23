@@ -35,7 +35,7 @@ namespace nikolex::queue::v1 {
 			pointer++;
 
 			for(uint8_t i = qty - 1; i > pointer; i--){
-				list[i+1] = list[i];
+				list[i] = list[i - 1];
 			}
 			list[pointer] = item;
 			return list[pointer];
@@ -67,6 +67,20 @@ namespace nikolex::queue::v1 {
 		T getFirstItem(){
 			pointer = 0;
 			return list[0];
+		}
+
+		T get(uint8_t index){
+			pointer = index;
+			return list[index];
+		}
+
+		void removeByIndex(uint8_t index){
+
+			for(uint8_t i = index; i < qty; i++){
+				list[i] = list[i+1];
+			}
+			pointer = index--;
+			qty--;
 		}
 
 		uint8_t length(){return qty;}
